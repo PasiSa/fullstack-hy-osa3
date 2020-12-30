@@ -1,5 +1,8 @@
+const { response } = require('express')
 const express = require('express')
 const app = express()
+
+app.use(express.json())
 
 let persons = [
   {
@@ -42,6 +45,40 @@ app.get('/info', (request, response) => {
   const nowDate = new Date();
   response.send(`<p>Phonebook has info for ${persons.length} people</p>
     ${nowDate}`)
+})
+
+app.delete('/api/persons/:id', (request, response) => {
+  const id = Number(request.params.id)
+  persons = persons.filter(pers => pers.id !== id)
+  response.status(204).end()
+})
+
+app.post('/api/persons', (request, response) => {
+  const newId = Math.floor(Math.random() * 99000)
+  const pers = request.body
+  if (!pers.name) {
+    console.log('Name is missing')
+    response.status(400).json({
+      error: 'Name is missing'
+    })
+    return
+  }
+  if (!pers.number) {
+    response.status(400).json({
+      error: 'Number is missing'
+    })
+    return
+  }
+  if (persons.find(n => n.name === pers.name)) {
+    response.status(400).json({
+      error: 'Name already exists'
+    })
+    return
+  }
+  pers.id = newId
+  console.log(pers)
+  persons = persons.concat(pers)
+  response.json(pers)
 })
 
 const PORT = 3001
