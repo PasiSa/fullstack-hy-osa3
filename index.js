@@ -1,8 +1,30 @@
 const { response } = require('express')
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+//app.use(morgan('tiny'))
+app.use(morgan(function (tokens, req, res) { 
+  const body = JSON.stringify(req.body)
+  if (tokens.method(req, res) === 'POST') {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms',
+      body
+    ].join(' ')
+  }
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ].join(' ')
+}))
 
 let persons = [
   {
@@ -76,7 +98,7 @@ app.post('/api/persons', (request, response) => {
     return
   }
   pers.id = newId
-  console.log(pers)
+  //console.log(pers)
   persons = persons.concat(pers)
   response.json(pers)
 })
