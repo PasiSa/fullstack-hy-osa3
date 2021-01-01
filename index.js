@@ -32,18 +32,6 @@ app.use(morgan(function (tokens, req, res) {
   ].join(' ')
 }))
 
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  }
-
-  next(error)
-}
-
-app.use(errorHandler)
-
 app.get('/api/persons', (req, response) => {
   Person.find({}).then(persons => {
     response.json(persons)
@@ -76,7 +64,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const pers = request.body
   if (!pers.name) {
     console.log('Name is missing')
@@ -95,9 +83,11 @@ app.post('/api/persons', (request, response) => {
     name: pers.name,
     number: pers.number,
   })
-  person.save().then(savedNote => {
-    response.json(savedNote)
-  })
+  person.save()
+    .then(savedNote => {
+      response.json(savedNote)
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -119,3 +109,17 @@ const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send({ error: 'name already exists' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
