@@ -1,4 +1,4 @@
-const { response } = require('express')
+//const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
@@ -51,16 +51,16 @@ app.get('/api/persons/:id', (request, response, next) => {
 })
 
 app.get('/info', (request, response) => {
-  const nowDate = new Date();
+  const nowDate = new Date()
   response.send(`<p>Phonebook has info for ${Person.length} people</p>
     ${nowDate}`)
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(
       response.status(204).end()
-    })
+    )
     .catch(error => next(error))
 })
 
